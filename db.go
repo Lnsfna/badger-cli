@@ -55,6 +55,7 @@ func Delete(key string) error {
 	return nil
 }
 
+// ListKeys with prefix.
 func ListKeys(prefix string) ([]string, error) {
 	var keys []string
 	err := db.View(func(txn *badger.Txn) error {

@@ -9,18 +9,20 @@ import (
 	"os"
 	"strings"
 
-	"github.com/c-bata/go-prompt"
+	prompt "github.com/c-bata/go-prompt"
 )
 
 var dbPath = flag.String("db_path", "./badger", "badger db path")
 
 var suggestions = []prompt.Suggest{
-	{"keys", "list keys by key prefix"},
-	{"get", "get key value"},
-	{"set", "set value"},
-	{"del", "delete key"},
-	{"exit", "exit the program"},
-	{"help", "help info"},
+	{Text: "keys", Description: "list keys by key prefix"},
+	{Text: "count", Description: "count keys by key prefix"},
+	{Text: "get", Description: "get key value"},
+	{Text: "set", Description: "set value"},
+	{Text: "del", Description: "delete key"},
+	{Text: "batch-del", Description: "batch delete by key prefix"},
+	{Text: "exit", Description: "exit the program"},
+	{Text: "help", Description: "help info"},
 }
 
 func completer(in prompt.Document) []prompt.Suggest {
@@ -56,6 +58,16 @@ func executor(in string) {
 				fmt.Println(k)
 			}
 		}
+	case "count":
+		if len(blocks) < 2 {
+			fmt.Println("Please input key prefix.")
+			return
+		}
+		if keys, err := ListKeys(blocks[1]); err != nil {
+			fmt.Println(err)
+		} else {
+			fmt.Printf("Count of '%v' is %v\n", blocks[1], len(keys))
+		}
 	case "get":
 		if len(blocks) < 2 {
 			fmt.Println("Please input a key.")
@@ -82,7 +94,7 @@ func executor(in string) {
 		}
 	case "del":
 		if len(blocks) < 2 {
-			fmt.Println("Please input a key.")
+			fmt.Println("Please input key prefix.")
 			return
 		}
 		if err := Delete(blocks[1]); err != nil {
@@ -90,6 +102,21 @@ func executor(in string) {
 		} else {
 			fmt.Println("Delete success.")
 		}
+	case "batch-del":
+		if len(blocks) < 2 {
+			fmt.Println("Please input a key.")
+			return
+		}
+		if keys, err := ListKeys(blocks[1]); err != nil {
+			fmt.Println(err)
+		} else {
+			for _, k := range keys {
+				if err := Delete(k); err != nil {
+					fmt.Printf("Delete '%v' error: %v\n", k, err)
+				}
+			}
+		}
+
 	case "help":
 		fmt.Print("Available commands: \n\n")
 		for _, s := range suggestions {
