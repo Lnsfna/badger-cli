@@ -1,18 +1,15 @@
 package main
 
 import (
-	"github.com/dgraph-io/badger"
+	badger "github.com/dgraph-io/badger/v3"
 	"github.com/pkg/errors"
 )
 
 var db *badger.DB
 
 func InitDB(path string) error {
-	opts := badger.DefaultOptions
-	opts.Dir = *dbPath
-	opts.ValueDir = *dbPath
 	var err error
-	if db, err = badger.Open(opts); err != nil {
+	if db, err = badger.Open(badger.DefaultOptions(*dbPath)); err != nil {
 		return errors.Wrap(err, "init db error")
 	}
 	return nil
